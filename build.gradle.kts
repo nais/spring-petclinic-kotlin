@@ -59,6 +59,7 @@ dependencies {
 
     runtimeOnly("com.h2database:h2")
     runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly("org.postgresql:postgresql")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation(kotlin("stdlib-jdk8"))

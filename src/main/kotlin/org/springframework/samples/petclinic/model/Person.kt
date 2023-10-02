@@ -30,9 +30,15 @@ open class Person : BaseEntity() {
 
     @Column(name = "first_name") @NotEmpty var firstName = ""
 
+    @Column(name = "middle_name") var middleName: String? = null
+
     @Column(name = "last_name") @NotEmpty var lastName = ""
 
     fun fullName(): String {
-        return "$firstName $lastName"
+        return if (middleName != null) {
+            "$firstName ${middleName?.let { it.firstOrNull()?.plus(".") } ?: ""} $lastName"
+        } else {
+            "$firstName $lastName"
+        }
     }
 }
