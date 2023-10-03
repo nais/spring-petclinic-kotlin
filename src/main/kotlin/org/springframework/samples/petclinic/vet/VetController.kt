@@ -15,6 +15,7 @@
  */
 package org.springframework.samples.petclinic.vet
 
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ResponseBody
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 @Controller
 class VetController(val vetRepository: VetRepository) {
 
+    @WithSpan
     @GetMapping("/vets.html")
     fun showHtmlVetList(model: MutableMap<String, Any>): String {
         val vets = Vets(vetRepository.findAll())
@@ -36,6 +38,7 @@ class VetController(val vetRepository: VetRepository) {
         return "vets/vetList"
     }
 
+    @WithSpan
     @GetMapping("vets.json", produces = ["application/json"])
     @ResponseBody
     fun showJsonVetList(): Vets =
@@ -43,11 +46,8 @@ class VetController(val vetRepository: VetRepository) {
             // objects so it is simpler for Json/Object mapping
             Vets(vetRepository.findAll())
 
-
+    @WithSpan
     @GetMapping("vets.xml")
     @ResponseBody
-    fun showXmlVetList(): Vets =
-            Vets(vetRepository.findAll())
-
-
+    fun showXmlVetList(): Vets = Vets(vetRepository.findAll())
 }

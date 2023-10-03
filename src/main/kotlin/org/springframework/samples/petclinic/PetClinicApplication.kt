@@ -24,8 +24,7 @@ import org.springframework.boot.runApplication
  * @author Dave Syer
  * @author Antoine Rey
  */
-@SpringBootApplication(proxyBeanMethods = false)
-class PetClinicApplication
+@SpringBootApplication(proxyBeanMethods = false) class PetClinicApplication
 
 fun main(args: Array<String>) {
     runApplication<PetClinicApplication>(*args)

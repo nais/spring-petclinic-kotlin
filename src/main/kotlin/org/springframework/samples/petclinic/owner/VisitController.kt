@@ -15,13 +15,14 @@
  */
 package org.springframework.samples.petclinic.owner
 
+import io.opentelemetry.instrumentation.annotations.WithSpan
+import jakarta.validation.Valid
 import org.springframework.samples.petclinic.visit.Visit
 import org.springframework.samples.petclinic.visit.VisitRepository
 import org.springframework.stereotype.Controller
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
-import jakarta.validation.Valid
 
 /**
  * @author Juergen Hoeller
@@ -40,11 +41,10 @@ class VisitController(val visits: VisitRepository, val pets: PetRepository) {
     }
 
     /**
-     * Called before each and every @RequestMapping annotated method.
-     * 2 goals:
+     * Called before each and every @RequestMapping annotated method. 2 goals:
      * - Make sure we always have fresh data
-     * - Since we do not use the session scope, make sure that Pet object always has an id
-     * (Even though id is not part of the form fields)
+     * - Since we do not use the session scope, make sure that Pet object always has an id (Even
+     * though id is not part of the form fields)
      *
      * @param petId
      * @return Pet
@@ -59,11 +59,13 @@ class VisitController(val visits: VisitRepository, val pets: PetRepository) {
     }
 
     // Spring MVC calls method loadPetWithVisit(...) before initNewVisitForm is called
+    @WithSpan
     @GetMapping("/owners/*/pets/{petId}/visits/new")
-    fun initNewVisitForm(@PathVariable("petId") petId: Int, model: Map<String, Any>): String
-            = "pets/createOrUpdateVisitForm"
+    fun initNewVisitForm(@PathVariable("petId") petId: Int, model: Map<String, Any>): String =
+            "pets/createOrUpdateVisitForm"
 
     // Spring MVC calls method loadPetWithVisit(...) before processNewVisitForm is called
+    @WithSpan
     @PostMapping("/owners/{ownerId}/pets/{petId}/visits/new")
     fun processNewVisitForm(@Valid visit: Visit, result: BindingResult): String {
         return if (result.hasErrors()) {
@@ -73,5 +75,4 @@ class VisitController(val visits: VisitRepository, val pets: PetRepository) {
             "redirect:/owners/{ownerId}"
         }
     }
-
 }

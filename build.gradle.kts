@@ -20,6 +20,10 @@ plugins {
 // WebJars versions are also referenced in src/main/resources/templates/fragments/layout.html for resource URLs
 val boostrapVersion = "5.1.3"
 val fontAwesomeVersion = "4.7.0"
+var otelSpringStarterVersion = "1.30.0-alpha"
+var otelVersion = "1.30.1"
+var otelExportersOtlpVersion = "0.9.1"
+var otelSemconvVersion = "1.21.0-alpha"
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
@@ -51,6 +55,21 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.webjars.npm:bootstrap:$boostrapVersion")
     implementation("org.webjars.npm:font-awesome:$fontAwesomeVersion")
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-autoconfigure
+    // https://opentelemetry.io/docs/instrumentation/java/manual/#automatic-configuration
+    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:$otelSpringStarterVersion")
+    implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
+    implementation("io.opentelemetry:opentelemetry-sdk:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-exporters-otlp:$otelExportersOtlpVersion")
+    implementation("io.opentelemetry:opentelemetry-sdk-metrics:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-exporter-logging:$otelVersion");
+    implementation("io.opentelemetry.semconv:opentelemetry-semconv:$otelSemconvVersion")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:$otelVersion");
+
+    implementation("org.springframework:spring-aop:6.0.12")
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:1.18.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")

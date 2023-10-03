@@ -15,12 +15,11 @@
  */
 package org.springframework.samples.petclinic.owner
 
-
-import org.springframework.samples.petclinic.model.Person
-import java.util.*
 import jakarta.persistence.*
 import jakarta.validation.constraints.Digits
 import jakarta.validation.constraints.NotEmpty
+import java.util.*
+import org.springframework.samples.petclinic.model.Person
 
 /**
  * Simple JavaBean domain object representing an owner.
@@ -34,26 +33,16 @@ import jakarta.validation.constraints.NotEmpty
 @Entity
 @Table(name = "owners")
 class Owner : Person() {
-    @Column(name = "address")
-    @NotEmpty
-    var address = ""
+    @Column(name = "address") @NotEmpty var address = ""
 
-    @Column(name = "city")
-    @NotEmpty
-    var city = ""
+    @Column(name = "city") @NotEmpty var city = ""
 
-    @Column(name = "telephone")
-    @NotEmpty
-    @Digits(fraction = 0, integer = 10)
-    var telephone = ""
+    @Column(name = "telephone") @NotEmpty @Digits(fraction = 0, integer = 10) var telephone = ""
 
     @OneToMany(cascade = [CascadeType.ALL], mappedBy = "owner")
     var pets: MutableSet<Pet> = HashSet()
 
-
-    fun getPets(): List<Pet> =
-            pets.sortedWith(compareBy({ it.name }))
-
+    fun getPets(): List<Pet> = pets.sortedWith(compareBy({ it.name }))
 
     fun addPet(pet: Pet) {
         if (pet.isNew) {
@@ -68,8 +57,7 @@ class Owner : Person() {
      * @param name to test
      * @return true if owner name is already in use
      */
-    fun getPet(name: String): Pet? =
-            getPet(name, false)
+    fun getPet(name: String): Pet? = getPet(name, false)
 
     /**
      * Return the Pet with the given name, or null if none found for this Owner.
@@ -89,5 +77,4 @@ class Owner : Person() {
         }
         return null
     }
-
 }

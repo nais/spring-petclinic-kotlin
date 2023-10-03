@@ -15,7 +15,8 @@
  */
 package org.springframework.samples.petclinic.owner
 
-
+import io.opentelemetry.instrumentation.annotations.WithSpan
+import jakarta.validation.Valid
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.ui.set
@@ -23,7 +24,6 @@ import org.springframework.util.StringUtils
 import org.springframework.validation.BindingResult
 import org.springframework.web.bind.WebDataBinder
 import org.springframework.web.bind.annotation.*
-import jakarta.validation.Valid
 
 /**
  * @author Juergen Hoeller
@@ -37,12 +37,10 @@ class PetController(val pets: PetRepository, val owners: OwnerRepository) {
 
     private val VIEWS_PETS_CREATE_OR_UPDATE_FORM = "pets/createOrUpdatePetForm"
 
-    @ModelAttribute("types")
-    fun populatePetTypes(): Collection<PetType> = this.pets.findPetTypes()
+    @ModelAttribute("types") fun populatePetTypes(): Collection<PetType> = this.pets.findPetTypes()
 
     @ModelAttribute("owner")
-    fun findOwner(@PathVariable("ownerId") ownerId: Int): Owner
-            = owners.findById(ownerId)
+    fun findOwner(@PathVariable("ownerId") ownerId: Int): Owner = owners.findById(ownerId)
 
     @InitBinder("owner")
     fun initOwnerBinder(dataBinder: WebDataBinder) {
@@ -54,6 +52,7 @@ class PetController(val pets: PetRepository, val owners: OwnerRepository) {
         dataBinder.validator = PetValidator()
     }
 
+    @WithSpan
     @GetMapping("/pets/new")
     fun initCreationForm(owner: Owner, model: Model): String {
         val pet = Pet()
@@ -62,9 +61,16 @@ class PetController(val pets: PetRepository, val owners: OwnerRepository) {
         return VIEWS_PETS_CREATE_OR_UPDATE_FORM
     }
 
+    @WithSpan
     @PostMapping("/pets/new")
-    fun processCreationForm(owner: Owner, @Valid pet: Pet, result: BindingResult, model: Model): String {
-        if (StringUtils.hasLength(pet.name) && pet.isNew && owner.getPet(pet.name!!, true) != null) {
+    fun processCreationForm(
+            owner: Owner,
+            @Valid pet: Pet,
+            result: BindingResult,
+            model: Model
+    ): String {
+        if (StringUtils.hasLength(pet.name) && pet.isNew && owner.getPet(pet.name!!, true) != null
+        ) {
             result.rejectValue("name", "duplicate", "already exists")
         }
         owner.addPet(pet)
@@ -77,6 +83,7 @@ class PetController(val pets: PetRepository, val owners: OwnerRepository) {
         }
     }
 
+    @WithSpan
     @GetMapping("/pets/{petId}/edit")
     fun initUpdateForm(@PathVariable petId: Int, model: Model): String {
         val pet = pets.findById(petId)
@@ -84,8 +91,14 @@ class PetController(val pets: PetRepository, val owners: OwnerRepository) {
         return VIEWS_PETS_CREATE_OR_UPDATE_FORM
     }
 
+    @WithSpan
     @PostMapping("/pets/{petId}/edit")
-    fun processUpdateForm(@Valid pet: Pet, result: BindingResult, owner: Owner, model: Model): String {
+    fun processUpdateForm(
+            @Valid pet: Pet,
+            result: BindingResult,
+            owner: Owner,
+            model: Model
+    ): String {
         return if (result.hasErrors()) {
             pet.owner = owner
             model["pet"] = pet
@@ -96,5 +109,4 @@ class PetController(val pets: PetRepository, val owners: OwnerRepository) {
             "redirect:/owners/{ownerId}"
         }
     }
-
 }
