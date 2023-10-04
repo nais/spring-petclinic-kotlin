@@ -89,7 +89,10 @@ class OwnerController(
             model: MutableMap<String, Any>
     ): String {
         // find owners by last name
+        val span = tracer.spanBuilder("find owners").startSpan()
         val results = owners.findByLastName(owner.lastName)
+        span.end()
+
         return when {
             results.isEmpty() -> {
                 // no owners found
@@ -111,7 +114,10 @@ class OwnerController(
     @WithSpan
     @GetMapping("/owners/{ownerId}/edit")
     fun initUpdateOwnerForm(@PathVariable("ownerId") ownerId: Int, model: Model): String {
+        val span = tracer.spanBuilder("find owner").startSpan()
         val owner = owners.findById(ownerId)
+        span.end()
+
         model.addAttribute(owner)
         return VIEWS_OWNER_CREATE_OR_UPDATE_FORM
     }
@@ -126,8 +132,8 @@ class OwnerController(
         return if (result.hasErrors()) {
             VIEWS_OWNER_CREATE_OR_UPDATE_FORM
         } else {
-            val span = tracer.spanBuilder("save owner").startSpan()
             owner.id = ownerId
+            val span = tracer.spanBuilder("save owner").startSpan()
             this.owners.save(owner)
             span.end()
 
@@ -144,9 +150,14 @@ class OwnerController(
     @WithSpan
     @GetMapping("/owners/{ownerId}")
     fun showOwner(@PathVariable("ownerId") ownerId: Int, model: Model): String {
+        val span = tracer.spanBuilder("find owner").startSpan()
         val owner = this.owners.findById(ownerId)
+        span.end()
+
         for (pet in owner.getPets()) {
+            val visitsSpan = tracer.spanBuilder("find visits").startSpan()
             pet.visits = visits.findByPetId(pet.id!!)
+            visitsSpan.end()
         }
         model.addAttribute(owner)
         return "owners/ownerDetails"

@@ -36,6 +36,21 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.bootRun {
+    jvmArgs = listOf(
+        "-Dotel.service.name=petclinic",
+        "-Dotel.resource.attributes=service.namespace=mammals",
+        "-Dspring.profiles.active=postgres",
+        "-Dotel.java.global-autoconfigure.enabled=true",
+        "-Dotel.instrumentation.hibernate.experimental-span-attributes=true",
+        "-Dotel.logs.exporter=none",
+        "-Dotel.metrics.exporter=prometheus",
+        "-Dotel.metrics.exemplar.filter=ALWAYS_ON",
+        "-Dotel.exporter.prometheus.port=9464",
+        "-Dotel.traces.exporter=otlp",
+    )
+}
+
 repositories {
     mavenCentral()
     maven { url = uri("https://repo.spring.io/snapshot") }
@@ -43,12 +58,16 @@ repositories {
 }
 
 dependencies {
+    //api("com.google.cloud:sqlcommenter:2.0.1")
+
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.glassfish.jaxb:jaxb-runtime")
     implementation("javax.cache:cache-api")
@@ -59,17 +78,19 @@ dependencies {
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-autoconfigure
     // https://opentelemetry.io/docs/instrumentation/java/manual/#automatic-configuration
     implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:$otelSpringStarterVersion")
-    implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
-    implementation("io.opentelemetry:opentelemetry-sdk:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-exporters-otlp:$otelExportersOtlpVersion")
-    implementation("io.opentelemetry:opentelemetry-sdk-metrics:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-exporter-logging:$otelVersion");
     implementation("io.opentelemetry.semconv:opentelemetry-semconv:$otelSemconvVersion")
-    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:$otelVersion");
-
-    implementation("org.springframework:spring-aop:6.0.12")
+    implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
+    implementation("io.opentelemetry:opentelemetry-exporter-logging:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-exporters-otlp:$otelExportersOtlpVersion")
     implementation("io.opentelemetry:opentelemetry-extension-annotations:1.18.0")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-sdk-metrics:$otelVersion");
+    implementation("io.opentelemetry:opentelemetry-sdk:$otelVersion");
+
+    implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:1.30.0-alpha")
+    implementation("io.opentelemetry:opentelemetry-exporter-prometheus:1.30.1-alpha")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
