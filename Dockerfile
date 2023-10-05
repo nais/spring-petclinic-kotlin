@@ -1,10 +1,17 @@
-FROM gradle:4.7.0-jdk8-alpine AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle build
+FROM bellsoft/liberica-openjdk-alpine:17 as BUILDER
+ENV APP_HOME=/usr/app/
+WORKDIR $APP_HOME
+COPY build.gradle.kts settings.gradle.kts gradlew $APP_HOME
+COPY gradle $APP_HOME/gradle
+RUN ./gradlew build -x test || return 0
+COPY . .
+RUN ./gradlew build -x test
 
-FROM openjdk:8-jre-slim
-EXPOSE 8080
-COPY --from=build /home/gradle/src/build/libs/spring-petclinic-kotlin.jar /app/
-RUN bash -c 'touch /app/spring-petclinic-kotlin.jar'
-ENTRYPOINT ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app/spring-petclinic-kotlin.jar"]
+FROM bellsoft/liberica-openjdk-alpine:17
+RUN apk add --no-cache bash
+ENV APP_HOME=/usr/app/
+WORKDIR $APP_HOME
+COPY --from=BUILDER $APP_HOME/build/libs/app.jar .
+EXPOSE 8080:8080
+#CMD ["dumb-init", "--"]
+ENTRYPOINT ["java","-jar", "app.jar", "-Dotel.java.global-autoconfigure.enabled=true"]

@@ -25,31 +25,44 @@ var otelVersion = "1.30.1"
 var otelExportersOtlpVersion = "0.9.1"
 var otelSemconvVersion = "1.21.0-alpha"
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs = listOf("-Xjsr305=strict")
+tasks {
+    jar {
+        archiveFileName.set("app-plain.jar")
     }
-}
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
+    bootJar {
+        archiveFileName.set("app.jar")
+    }
 
-tasks.bootRun {
-    jvmArgs = listOf(
-        "-Dotel.exporter.otlp.metrics.enabled=false",
-        "-Dotel.exporter.prometheus.port=9464",
-        "-Dotel.instrumentation.hibernate.experimental-span-attributes=true",
-        "-Dotel.java.global-autoconfigure.enabled=true",
-        "-Dotel.logs.exporter=none",
-        "-Dotel.metrics.exemplar.filter=ALWAYS_ON",
-        "-Dotel.metrics.exporter=prometheus",
-        "-Dotel.resource.attributes=service.namespace=myteam",
-        "-Dotel.service.name=petclinic",
-        "-Dotel.traces.exporter=otlp",
-        "-Dspring.profiles.active=default",
-    )
+    withType<KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+        }
+    }
+
+    withType<Test> {
+        useJUnitPlatform()
+        environment("SPRING_PROFILES_ACTIVE", "default")
+        environment("OTEL_METRICS_EXPORTER", "none")
+        environment("OTEL_LOGS_EXPORTER", "none")
+        environment("OTEL_TRACES_EXPORTER", "none")
+    }
+
+    bootRun {
+        environment("SPRING_PROFILES_ACTIVE", "default")
+        environment("OTEL_METRICS_EXPORTER", "prometheus")
+        environment("OTEL_LOGS_EXPORTER", "none")
+        environment("OTEL_TRACES_EXPORTER", "otlp")
+        environment("OTEL_EXPORTER_METRICS_ENABLED", "false")
+        environment("OTEL_METRICS_EXEMPLAR_FILTER", "ALWAYS_ON")
+        environment("OTEL_SERVICE_NAME", "petclinic")
+        environment("OTEL_RESOURCE_ATTRIBUTES", "service.namespace=myteam")
+
+        jvmArgs = listOf(
+            "-Dotel.java.global-autoconfigure.enabled=true",
+        )
+    }
 }
 
 repositories {
