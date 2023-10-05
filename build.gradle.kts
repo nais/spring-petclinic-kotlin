@@ -38,16 +38,17 @@ tasks.withType<Test> {
 
 tasks.bootRun {
     jvmArgs = listOf(
-        "-Dotel.service.name=petclinic",
-        "-Dotel.resource.attributes=service.namespace=mammals",
-        "-Dspring.profiles.active=postgres",
-        "-Dotel.java.global-autoconfigure.enabled=true",
-        "-Dotel.instrumentation.hibernate.experimental-span-attributes=true",
-        "-Dotel.logs.exporter=none",
-        "-Dotel.metrics.exporter=prometheus",
-        "-Dotel.metrics.exemplar.filter=ALWAYS_ON",
+        "-Dotel.exporter.otlp.metrics.enabled=false",
         "-Dotel.exporter.prometheus.port=9464",
+        "-Dotel.instrumentation.hibernate.experimental-span-attributes=true",
+        "-Dotel.java.global-autoconfigure.enabled=true",
+        "-Dotel.logs.exporter=none",
+        "-Dotel.metrics.exemplar.filter=ALWAYS_ON",
+        "-Dotel.metrics.exporter=prometheus",
+        "-Dotel.resource.attributes=service.namespace=myteam",
+        "-Dotel.service.name=petclinic",
         "-Dotel.traces.exporter=otlp",
+        "-Dspring.profiles.active=default",
     )
 }
 
@@ -90,6 +91,7 @@ dependencies {
 
     implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:1.30.0-alpha")
     implementation("io.opentelemetry:opentelemetry-exporter-prometheus:1.30.1-alpha")
+    //implementation("io.micrometer:micrometer-core:1.11.4")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
