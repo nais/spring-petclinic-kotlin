@@ -22,8 +22,8 @@ val boostrapVersion = "5.1.3"
 val fontAwesomeVersion = "4.7.0"
 var otelSpringStarterVersion = "1.30.0-alpha"
 var otelVersion = "1.30.1"
-var otelExportersOtlpVersion = "0.9.1"
 var otelSemconvVersion = "1.21.0-alpha"
+var otelExtensionAnnotationsVersion = "1.18.0"
 
 tasks {
     jar {
@@ -61,6 +61,8 @@ tasks {
 
         jvmArgs = listOf(
             "-Dotel.java.global-autoconfigure.enabled=true",
+            // seams to be some kind of bug in the exporter, it does not work with the default value
+            "-Dotel.exporter.metrics.enabled=false",
         )
     }
 }
@@ -69,6 +71,12 @@ repositories {
     mavenCentral()
     maven { url = uri("https://repo.spring.io/snapshot") }
     maven { url = uri("https://repo.spring.io/milestone") }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("io.opentelemetry:opentelemetry-bom:$otelVersion")
+    }
 }
 
 dependencies {
@@ -95,15 +103,19 @@ dependencies {
     implementation("io.opentelemetry.semconv:opentelemetry-semconv:$otelSemconvVersion")
     implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
     implementation("io.opentelemetry:opentelemetry-exporter-logging:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-exporters-otlp:$otelExportersOtlpVersion")
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:1.18.0")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:$otelVersion")
+    implementation("io.opentelemetry:opentelemetry-extension-annotations:$otelExtensionAnnotationsVersion")
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:$otelVersion");
     implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion");
     implementation("io.opentelemetry:opentelemetry-sdk-metrics:$otelVersion");
     implementation("io.opentelemetry:opentelemetry-sdk:$otelVersion");
 
+    implementation(platform("io.opentelemetry:opentelemetry-bom-alpha:1.26.0-alpha"))
+    implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:1.30.0"))
+    implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:1.19.2-alpha"))
+
     implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:1.30.0-alpha")
-    implementation("io.opentelemetry:opentelemetry-exporter-prometheus:1.30.1-alpha")
+    implementation("io.opentelemetry:opentelemetry-exporter-prometheus:$otelVersion-alpha")
     //implementation("io.micrometer:micrometer-core:1.11.4")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
 
