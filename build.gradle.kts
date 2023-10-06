@@ -1,10 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
 description = "Kotlin version of the Spring Petclinic application"
 group = "org.springframework.samples"
 // Align with Spring Version
-version = "3.1.3"
+version = "3.1.4"
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 
@@ -20,9 +19,8 @@ plugins {
 // WebJars versions are also referenced in src/main/resources/templates/fragments/layout.html for resource URLs
 val boostrapVersion = "5.1.3"
 val fontAwesomeVersion = "4.7.0"
-var otelSpringStarterVersion = "1.30.0-alpha"
 var otelVersion = "1.30.1"
-var otelSemconvVersion = "1.21.0-alpha"
+var otelInstrumentationVersion = "1.30.0"
 var otelExtensionAnnotationsVersion = "1.18.0"
 
 tasks {
@@ -54,7 +52,7 @@ tasks {
         environment("OTEL_METRICS_EXPORTER", "prometheus")
         environment("OTEL_LOGS_EXPORTER", "none")
         environment("OTEL_TRACES_EXPORTER", "otlp")
-        environment("OTEL_EXPORTER_METRICS_ENABLED", "false")
+        environment("OTEL_EXPORTER_OTLP_METRICS_ENABLED", "false")
         environment("OTEL_METRICS_EXEMPLAR_FILTER", "ALWAYS_ON")
         environment("OTEL_SERVICE_NAME", "petclinic")
         environment("OTEL_RESOURCE_ATTRIBUTES", "service.namespace=myteam")
@@ -62,7 +60,11 @@ tasks {
         jvmArgs = listOf(
             "-Dotel.java.global-autoconfigure.enabled=true",
             // seams to be some kind of bug in the exporter, it does not work with the default value
-            "-Dotel.exporter.metrics.enabled=false",
+            "-Dotel.exporter.otlp.metrics.enabled=false",
+
+            // Enable the "Prometheus mode" this will simulate the behavior of Micrometer's PrometheusMeterRegistry.
+            // The instruments will be renamed to match Micrometer instrument naming, and the base time unit will be set to seconds.
+            "-Dotel.instrumentation.micrometer.prometheus-mode.enabled=true",
         )
     }
 }
@@ -76,6 +78,9 @@ repositories {
 dependencyManagement {
     imports {
         mavenBom("io.opentelemetry:opentelemetry-bom:$otelVersion")
+        mavenBom("io.opentelemetry:opentelemetry-bom-alpha:${otelVersion}-alpha")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:$otelInstrumentationVersion")
+        mavenBom("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:${otelInstrumentationVersion}-alpha")
     }
 }
 
@@ -99,23 +104,22 @@ dependencies {
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-autoconfigure
     // https://opentelemetry.io/docs/instrumentation/java/manual/#automatic-configuration
-    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter:$otelSpringStarterVersion")
-    implementation("io.opentelemetry.semconv:opentelemetry-semconv:$otelSemconvVersion")
-    implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
-    implementation("io.opentelemetry:opentelemetry-exporter-logging:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-exporter-otlp:$otelVersion")
-    implementation("io.opentelemetry:opentelemetry-extension-annotations:$otelExtensionAnnotationsVersion")
-    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-sdk-metrics:$otelVersion");
-    implementation("io.opentelemetry:opentelemetry-sdk:$otelVersion");
+    implementation("io.opentelemetry.instrumentation:opentelemetry-spring-boot-starter")
+    implementation("io.opentelemetry.semconv:opentelemetry-semconv")
+    implementation("io.opentelemetry:opentelemetry-api")
+    implementation("io.opentelemetry:opentelemetry-exporter-logging")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+    implementation("io.opentelemetry:opentelemetry-sdk-metrics")
+    implementation("io.opentelemetry:opentelemetry-sdk")
 
     implementation(platform("io.opentelemetry:opentelemetry-bom-alpha:1.26.0-alpha"))
     implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom:1.30.0"))
     implementation(platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:1.19.2-alpha"))
 
-    implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5:1.30.0-alpha")
-    implementation("io.opentelemetry:opentelemetry-exporter-prometheus:$otelVersion-alpha")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-micrometer-1.5")
+    implementation("io.opentelemetry:opentelemetry-exporter-prometheus")
     //implementation("io.micrometer:micrometer-core:1.11.4")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.4")
 
