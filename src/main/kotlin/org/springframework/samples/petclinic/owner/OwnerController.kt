@@ -15,7 +15,9 @@
  */
 package org.springframework.samples.petclinic.owner
 
+import io.micrometer.core.instrument.MeterRegistry
 import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.metrics.Meter
 import io.opentelemetry.api.trace.Tracer
 import io.opentelemetry.instrumentation.annotations.WithSpan
 import jakarta.validation.Valid
@@ -41,12 +43,20 @@ import org.springframework.web.bind.annotation.PostMapping
 class OwnerController(
         val owners: OwnerRepository,
         val visits: VisitRepository,
+        val meterRegistry: MeterRegistry,
         @Autowired val openTelemetry: OpenTelemetry
 ) {
 
     val VIEWS_OWNER_CREATE_OR_UPDATE_FORM = "owners/createOrUpdateOwnerForm"
 
-    private val tracer: Tracer = openTelemetry.getTracer(OwnerController::class.java.name, "0.1.0")
+    private val tracer: Tracer = openTelemetry.getTracer(OwnerController::class.java.name)
+    private val meter: Meter = openTelemetry.getMeter(OwnerController::class.java.name)
+    private val otelCounter =
+            meter.counterBuilder("otel_owners_lookup_total")
+                    .setDescription("Total number of owners looked up")
+                    .build()
+
+    private final val micrometerCounter = meterRegistry.counter("micrometer_owners_lookup_total")
 
     @InitBinder
     fun setAllowedFields(dataBinder: WebDataBinder) {
@@ -88,6 +98,9 @@ class OwnerController(
             result: BindingResult,
             model: MutableMap<String, Any>
     ): String {
+        otelCounter.add(1L)
+        micrometerCounter.increment()
+
         // find owners by last name
         val span = tracer.spanBuilder("find owners").startSpan()
         val results = owners.findByLastName(owner.lastName)
@@ -114,6 +127,9 @@ class OwnerController(
     @WithSpan
     @GetMapping("/owners/{ownerId}/edit")
     fun initUpdateOwnerForm(@PathVariable("ownerId") ownerId: Int, model: Model): String {
+        otelCounter.add(1L)
+        micrometerCounter.increment()
+
         val span = tracer.spanBuilder("find owner").startSpan()
         val owner = owners.findById(ownerId)
         span.end()
@@ -150,6 +166,9 @@ class OwnerController(
     @WithSpan
     @GetMapping("/owners/{ownerId}")
     fun showOwner(@PathVariable("ownerId") ownerId: Int, model: Model): String {
+        otelCounter.add(1L)
+        micrometerCounter.increment()
+
         val span = tracer.spanBuilder("find owner").startSpan()
         val owner = this.owners.findById(ownerId)
         span.end()
