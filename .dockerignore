@@ -1,0 +1,12 @@
+.*
+*.md
+.git/
+.gradle/
+.idea/
+build/
+deploy/
+out/
+test-results/
+
+Dockerfile
+docker-compose.yml
